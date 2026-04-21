@@ -1,0 +1,108 @@
+import '../models/tenant.dart';
+import '../models/menu_item.dart';
+
+final List<Tenant> dummyTenants = [
+  Tenant(
+    id: 1,
+    name: 'Warung Mak Siti',
+    imageUrl: '🍲',
+    rating: 4.8,
+    reviews: 324,
+    distance: 0.5,
+    estimatedTime: '10-15 menit',
+  ),
+  Tenant(
+    id: 2,
+    name: 'Nasi Kuning Enak',
+    imageUrl: '🍛',
+    rating: 4.6,
+    reviews: 256,
+    distance: 0.8,
+    estimatedTime: '15-20 menit',
+  ),
+  Tenant(
+    id: 3,
+    name: 'Bakso & Mie Lezat',
+    imageUrl: '🍜',
+    rating: 4.7,
+    reviews: 412,
+    distance: 0.3,
+    estimatedTime: '5-10 menit',
+  ),
+  Tenant(
+    id: 4,
+    name: 'Kopi & Kue Nikmat',
+    imageUrl: '☕',
+    rating: 4.5,
+    reviews: 189,
+    distance: 0.6,
+    estimatedTime: '8-12 menit',
+  ),
+];
+
+final List<MenuItem> dummyMenuItems = [
+  MenuItem(
+    id: 1,
+    name: 'Nasi Goreng Spesial',
+    description: 'Nasi goreng dengan telur, ayam, dan sayuran segar',
+    price: 35000,
+    imageUrl: '🍚',
+    category: 'Nasi',
+  ),
+  MenuItem(
+    id: 2,
+    name: 'Soto Ayam',
+    description: 'Sup tradisional dengan daging ayam lembut',
+    price: 28000,
+    imageUrl: '🍲',
+    category: 'Soup',
+  ),
+  MenuItem(
+    id: 3,
+    name: 'Gado-Gado Premium',
+    description: 'Sayuran segar dengan saus kacang kental',
+    price: 32000,
+    imageUrl: '🥗',
+    category: 'Vegetables',
+  ),
+  MenuItem(
+    id: 4,
+    name: 'Sate Ayam (10 pcs)',
+    description: 'Daging ayam tusuk dengan bumbu kaya rasa',
+    price: 45000,
+    imageUrl: '🍢',
+    category: 'Meat',
+  ),
+  MenuItem(
+    id: 5,
+    name: 'Mie Goreng Telur',
+    description: 'Mie kuning goreng dengan telur dan sayuran',
+    price: 25000,
+    imageUrl: '🍝',
+    category: 'Noodles',
+  ),
+  MenuItem(
+    id: 6,
+    name: 'Bakso Mercon',
+    description: 'Bakso berukuran besar dengan kuah gurih',
+    price: 30000,
+    imageUrl: '🍜',
+    category: 'Soup',
+  ),
+  MenuItem(
+    id: 7,
+    name: 'Es Teh Manis',
+    description: 'Teh ais segar dengan rasa manis alami',
+    price: 8000,
+    imageUrl: '🧋',
+    category: 'Drinks',
+  ),
+  MenuItem(
+    id: 8,
+    name: 'Kopi Hitam',
+    description: 'Kopi hitam panas tanpa gula',
+    price: 12000,
+    imageUrl: '☕',
+    category: 'Drinks',
+  ),
+];
