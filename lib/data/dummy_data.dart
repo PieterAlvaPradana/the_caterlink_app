@@ -1,6 +1,9 @@
 import '../models/tenant.dart';
 import '../models/menu_item.dart';
 
+/// =======================
+/// DATA TENANT
+/// =======================
 final List<Tenant> dummyTenants = [
   Tenant(
     id: 1,
@@ -40,6 +43,9 @@ final List<Tenant> dummyTenants = [
   ),
 ];
 
+/// =======================
+/// DATA MENU
+/// =======================
 final List<MenuItem> dummyMenuItems = [
   MenuItem(
     id: 1,
@@ -106,3 +112,25 @@ final List<MenuItem> dummyMenuItems = [
     category: 'Drinks',
   ),
 ];
+
+/// =======================
+/// RELASI MANUAL (PENTING 🔥)
+/// =======================
+/// tenantId : list menuId
+final Map<int, List<int>> tenantMenuMap = {
+  1: [1, 2],       // Warung Mak Siti
+  2: [3, 4],       // Nasi Kuning Enak
+  3: [5, 6],       // Bakso & Mie
+  4: [7, 8],       // Kopi & Kue
+};
+
+/// =======================
+/// FUNCTION FILTER MENU
+/// =======================
+List<MenuItem> getMenuByTenant(int tenantId) {
+  final menuIds = tenantMenuMap[tenantId] ?? [];
+
+  return dummyMenuItems
+      .where((menu) => menuIds.contains(menu.id))
+      .toList();
+}
