@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../constants/app_colors.dart';
 import '../../data/seller_menu_repository.dart';
 import '../../models/seller_menu_item.dart';
-import '../login_screen.dart';
+import '../auth/login_screen.dart';
 import 'widgets/add_menu_bottom_sheet.dart';
 
 /// Halaman utama seller — menampilkan daftar menu realtime dari Firestore.
@@ -27,9 +28,8 @@ class _SellerHomeScreenState extends State<SellerHomeScreen>
   final SellerMenuRepository _repository = SellerMenuRepository();
   late final AnimationController _fabAnimationController;
 
-  // TODO: Ganti dengan FirebaseAuth.instance.currentUser!.uid
-  // setelah Firebase Auth terintegrasi.
-  static const String _sellerId = 'demo_seller_001';
+  // Mengambil UID asli dari user yang sedang login
+  String get _sellerId => FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {

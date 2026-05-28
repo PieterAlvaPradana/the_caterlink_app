@@ -1,35 +1,27 @@
-// Mengimpor package utama Flutter untuk membangun UI
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// Mengimpor konstanta warna aplikasi
-import '../constants/app_colors.dart';
-
-// Mengimpor halaman QR Code
+import '../../constants/app_colors.dart';
+import '../../providers/cart_provider.dart';
+import '../../models/tenant.dart';
+import '../../models/order.dart';
+import '../../data/order_repository.dart';
 import 'qr_code_screen.dart';
 
-
-// Membuat halaman PaymentScreen dengan StatefulWidget
 class PaymentScreen extends StatefulWidget {
-  
-  // Menyimpan total pembayaran
-  final double totalAmount;
+  final Tenant tenant;
 
-  // Constructor untuk menerima totalAmount
-  const PaymentScreen({super.key, required this.totalAmount});
+  const PaymentScreen({super.key, required this.tenant});
 
-  // Membuat state untuk widget ini
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-
-// State class untuk PaymentScreen
 class _PaymentScreenState extends State<PaymentScreen> {
-  
-  // Menyimpan metode pembayaran yang dipilih
   String selectedPaymentMethod = 'cash';
+  bool _isLoading = false;
 
-  // Daftar metode pembayaran
   final paymentMethods = [
     {'id': 'cash', 'name': 'Tunai', 'icon': '💵'},
     {'id': 'card', 'name': 'Kartu Debit/Kredit', 'icon': '💳'},
@@ -37,26 +29,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     {'id': 'ewallet', 'name': 'E-Wallet', 'icon': '📱'},
   ];
 
-  // Fungsi utama membangun UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      
-      // Warna background halaman
-      backgroundColor: kBackgroundColor,
+    final cart = Provider.of<CartProvider>(context, listen: false);
 
-      // AppBar atas
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
       appBar: AppBar(
         backgroundColor: kCardColor,
         elevation: 0,
-
-        // Tombol kembali
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: kTextPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-
-        // Judul halaman
         title: const Text(
           'Pembayaran',
           style: TextStyle(
@@ -65,60 +50,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ),
       ),
-
-      // Isi halaman
       body: Column(
         children: [
-
-          // Konten utama scrollable
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // Kartu total pembayaran
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
-
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [kPrimaryColor, kAccentColor],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-
                       borderRadius: BorderRadius.circular(16),
-
                       boxShadow: [
                         BoxShadow(
-                          color: setOpacity(kPrimaryColor, 0.3),
+                          color: kPrimaryColor.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-
                     child: Column(
                       children: [
-
-                        // Label total pembayaran
                         const Text(
                           'Total Pembayaran',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 14),
                         ),
-
                         const SizedBox(height: 8),
-
-                        // Menampilkan total nominal
                         Text(
-                          'Rp${widget.totalAmount.toStringAsFixed(0)}',
+                          'Rp${cart.totalAmount.toStringAsFixed(0)}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 32,
@@ -128,10 +94,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Judul section metode pembayaran
                   const Text(
                     'Pilih Metode Pembayaran',
                     style: TextStyle(
@@ -140,10 +103,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       color: kTextPrimary,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Menampilkan semua metode pembayaran
                   ...paymentMethods.map(
                     (method) => _buildPaymentMethodCard(method),
                   ),
@@ -151,12 +111,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
           ),
-
-          // Tombol bawah bayar
           Container(
             decoration: BoxDecoration(
               color: kCardColor,
-
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -165,31 +122,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ],
             ),
-
             padding: const EdgeInsets.all(20),
-
             child: SafeArea(
               top: false,
-
               child: SizedBox(
                 width: double.infinity,
-
-                child: ElevatedButton(
-
-                  // Jalankan proses pembayaran
-                  onPressed: () => _processPayment(),
-
+                child: _isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                  onPressed: () => _processPayment(cart),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kPrimaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-
                     elevation: 8,
                   ),
-
                   child: const Text(
                     'Bayar',
                     style: TextStyle(
@@ -207,40 +156,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-
-  // Fungsi membangun kartu metode pembayaran
   Widget _buildPaymentMethodCard(Map<String, String> method) {
-    
-    // Mengecek apakah metode ini sedang dipilih
     bool isSelected = selectedPaymentMethod == method['id'];
-
     return GestureDetector(
-
-      // Saat ditekan, ubah metode pembayaran
       onTap: () => setState(
         () => selectedPaymentMethod = method['id']!,
       ),
-
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-
         decoration: BoxDecoration(
           color: isSelected
-              ? setOpacity(kPrimaryColor, 0.1)
+              ? kPrimaryColor.withValues(alpha: 0.1)
               : kCardColor,
-
           borderRadius: BorderRadius.circular(12),
-
           border: Border.all(
-            color: isSelected
-                ? kPrimaryColor
-                : Colors.transparent,
+            color: isSelected ? kPrimaryColor : Colors.transparent,
             width: 2,
           ),
-
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -248,58 +182,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ],
         ),
-
         child: Row(
           children: [
-
-            // Icon metode pembayaran
-            Text(
-              method['icon']!,
-              style: const TextStyle(fontSize: 24),
-            ),
-
+            Text(method['icon']!, style: const TextStyle(fontSize: 24)),
             const SizedBox(width: 12),
-
-            // Nama metode pembayaran
             Expanded(
               child: Text(
                 method['name']!,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? kPrimaryColor
-                      : kTextPrimary,
+                  color: isSelected ? kPrimaryColor : kTextPrimary,
                 ),
               ),
             ),
-
-            // Radio button custom
             Container(
               width: 20,
               height: 20,
-
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-
                 border: Border.all(
-                  color: isSelected
-                      ? kPrimaryColor
-                      : kTextSecondary,
+                  color: isSelected ? kPrimaryColor : kTextSecondary,
                   width: 2,
                 ),
-
-                color: isSelected
-                    ? kPrimaryColor
-                    : Colors.transparent,
+                color: isSelected ? kPrimaryColor : Colors.transparent,
               ),
-
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 12,
-                      color: Colors.white,
-                    )
+                  ? const Icon(Icons.check, size: 12, color: Colors.white)
                   : null,
             ),
           ],
@@ -308,28 +217,64 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  void _processPayment(CartProvider cart) async {
+    setState(() => _isLoading = true);
 
-  // Fungsi proses pembayaran
-  void _processPayment() {
-    
-    // Navigasi ke halaman QR Code
-    Navigator.of(context).push(
-      PageRouteBuilder(
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      
+      // Serialize items
+      final items = cart.items.values.map((c) => {
+        'id': c.item.id,
+        'name': c.item.name,
+        'emoji': c.item.imageUrl,
+        'price': c.item.price,
+        'quantity': c.quantity,
+      }).toList();
 
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const QRCodeScreen(),
+      final order = OrderModel(
+        id: '', // Generated by Firestore
+        userId: user.uid,
+        userName: user.email ?? 'User', // Would be better to fetch name from users collection
+        sellerId: widget.tenant.id,
+        sellerName: widget.tenant.name,
+        items: items,
+        totalPrice: cart.totalAmount,
+        status: 'paid',
+        createdAt: DateTime.now(),
+      );
 
-        transitionsBuilder:
-            (context, animation, secondaryAnimation, child) =>
+      final orderId = await OrderRepository().createOrder(order);
+
+      // Clear the cart
+      cart.clear();
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                QRCodeScreen(orderId: orderId),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) =>
                 SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(1, 0),
-                    end: Offset.zero,
-                  ).animate(animation),
-
-                  child: child,
-                ),
-      ),
-    );
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat pesanan: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

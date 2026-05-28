@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart'; 
 // Mengimpor package utama Flutter untuk membuat UI.
 
-import '../constants/app_colors.dart'; 
+import '../../constants/app_colors.dart'; 
 // Mengimpor file warna global aplikasi.
 
-import '../models/tenant.dart'; 
+import '../../models/tenant.dart'; 
 // Mengimpor model data Tenant.
-
-import '../data/dummy_data.dart'; 
-// Mengimpor data dummy tenant.
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'menu_screen.dart'; 
 // Mengimpor halaman menu.
 
-import 'login_screen.dart'; 
+import '../auth/login_screen.dart'; 
 // Mengimpor halaman login.
 
 class HomeScreen extends StatefulWidget {
@@ -208,17 +206,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .where('role', isEqualTo: 'seller')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  );
+                }
 
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-// Builder dinamis list tenant.
+                if (snapshot.hasError) {
+                  return const SliverToBoxAdapter(
+                    child: Center(child: Text('Terjadi kesalahan')),
+                  );
+                }
 
-                (context, index) =>
-                    _buildTenantCard(context, dummyTenants[index]),
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Text('Belum ada kantin terdaftar'),
+                      ),
+                    ),
+                  );
+                }
 
-                childCount: dummyTenants.length,
-// Jumlah tenant.
-              ),
+                final tenants = snapshot.data!.docs
+                    .map((doc) => Tenant.fromFirestore(doc))
+                    .toList();
+
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) =>
+                        _buildTenantCard(context, tenants[index]),
+                    childCount: tenants.length,
+                  ),
+                );
+              },
             ),
           ),
 

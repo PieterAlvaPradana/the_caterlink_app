@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Model menu khusus untuk seller — terintegrasi dengan Firestore.
-/// Menggunakan String id (Firestore document ID), berbeda dari MenuItem
-/// yang menggunakan int id untuk dummy data.
+/// Model menu untuk seller — terintegrasi dengan Firestore.
+/// Menggunakan String id (Firestore document ID).
 class SellerMenuItem {
   final String id;
   final String name;
@@ -11,6 +10,7 @@ class SellerMenuItem {
   final String imageUrl;
   final String category;
   final bool isAvailable;
+  final int stock;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -22,6 +22,7 @@ class SellerMenuItem {
     required this.imageUrl,
     required this.category,
     required this.isAvailable,
+    required this.stock,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -37,6 +38,7 @@ class SellerMenuItem {
       imageUrl: data['imageUrl'] as String? ?? '🍽️',
       category: data['category'] as String? ?? 'Lainnya',
       isAvailable: data['isAvailable'] as bool? ?? true,
+      stock: data['stock'] as int? ?? 50,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -51,6 +53,7 @@ class SellerMenuItem {
       'imageUrl': imageUrl,
       'category': category,
       'isAvailable': isAvailable,
+      'stock': stock,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -65,6 +68,7 @@ class SellerMenuItem {
     String? imageUrl,
     String? category,
     bool? isAvailable,
+    int? stock,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -76,6 +80,7 @@ class SellerMenuItem {
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       isAvailable: isAvailable ?? this.isAvailable,
+      stock: stock ?? this.stock,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

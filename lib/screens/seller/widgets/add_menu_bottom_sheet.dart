@@ -60,6 +60,7 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _priceController;
+  late final TextEditingController _stockController;
   late final AnimationController _animationController;
 
   String _selectedCategory = _kCategories.first;
@@ -79,6 +80,9 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
     _priceController = TextEditingController(
       text: item != null ? item.price.toStringAsFixed(0) : '',
     );
+    _stockController = TextEditingController(
+      text: item != null ? item.stock.toString() : '50',
+    );
     _selectedCategory = item?.category ?? _kCategories.first;
 
     _animationController = AnimationController(
@@ -93,6 +97,7 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _stockController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -113,6 +118,7 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
         imageUrl: _kCategoryEmojis[_selectedCategory] ?? '🍽️',
         category: _selectedCategory,
         isAvailable: widget.existingItem?.isAvailable ?? true,
+        stock: int.tryParse(_stockController.text.trim()) ?? 50,
         createdAt: widget.existingItem?.createdAt ?? now,
         updatedAt: now,
       );
@@ -325,6 +331,27 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
                             final price = double.tryParse(value.trim());
                             if (price == null || price <= 0) {
                               return 'Harga harus lebih dari 0';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Stok
+                        _buildLabel('Stok (Otomatis berkurang saat dibeli)'),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _stockController,
+                          hint: 'Contoh: 50',
+                          icon: Icons.inventory_2_rounded,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Stok wajib diisi';
                             }
                             return null;
                           },

@@ -1,50 +1,26 @@
-// Mengimpor package utama Flutter untuk UI
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-// Mengimpor file konstanta warna aplikasi
-import '../constants/app_colors.dart';
-
-// Mengimpor model tenant
-import '../models/tenant.dart';
-
-// Mengimpor model item menu
-import '../models/menu_item.dart';
-
-// Mengimpor model item cart
-import '../models/cart_item.dart';
-
-// Mengimpor data dummy menu
-import '../data/dummy_data.dart';
-
-// Mengimpor halaman cart
+import '../../constants/app_colors.dart';
+import '../../models/tenant.dart';
+import '../../models/seller_menu_item.dart';
+import '../../data/seller_menu_repository.dart';
+import '../../providers/cart_provider.dart';
 import 'cart_screen.dart';
 
-
-// Membuat halaman MenuScreen dengan StatefulWidget
 class MenuScreen extends StatefulWidget {
-  
-  // Menyimpan data tenant yang dipilih
   final Tenant tenant;
 
-  // Constructor untuk menerima tenant
   const MenuScreen({super.key, required this.tenant});
 
-  // Membuat state untuk widget
   @override
   State<MenuScreen> createState() => _MenuScreenState();
 }
 
-
-// State class untuk MenuScreen
 class _MenuScreenState extends State<MenuScreen> {
-  
-  // Menyimpan daftar item di keranjang
-  List<CartItem> cartItems = [];
-
-  // Menyimpan kategori yang dipilih
+  final SellerMenuRepository _repository = SellerMenuRepository();
   String selectedCategory = 'All';
 
-  // Daftar kategori menu
   final categories = [
     'All',
     'Nasi',
@@ -55,35 +31,19 @@ class _MenuScreenState extends State<MenuScreen> {
     'Drinks',
   ];
 
-  // Getter untuk mengambil item sesuai kategori
-  List<MenuItem> get filteredItems {
-    if (selectedCategory == 'All') return dummyMenuItems;
-
-    return dummyMenuItems
-        .where((item) => item.category == selectedCategory)
-        .toList();
-  }
-
-  // Fungsi utama untuk membangun UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      
-      // Background halaman
-      backgroundColor: kBackgroundColor,
+    final cart = Provider.of<CartProvider>(context);
 
-      // AppBar atas
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
       appBar: AppBar(
         backgroundColor: kCardColor,
         elevation: 0,
-
-        // Tombol kembali
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: kTextPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-
-        // Nama tenant
         title: Text(
           widget.tenant.name,
           style: const TextStyle(
@@ -91,37 +51,30 @@ class _MenuScreenState extends State<MenuScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
-        // Action kanan atas
         actions: [
-          if (cartItems.isNotEmpty)
+          if (cart.itemCount > 0)
             Padding(
               padding: const EdgeInsets.only(right: 16),
-
               child: Center(
                 child: GestureDetector(
-
-                  // Klik icon cart
-                  onTap: () => _navigateToCart(),
-
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => CartScreen(tenant: widget.tenant)),
+                  ),
                   child: Badge(
                     label: Text(
-                      cartItems.length.toString(),
+                      cart.itemCount.toString(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
                       ),
                     ),
-
                     child: Container(
                       width: 40,
                       height: 40,
-
                       decoration: BoxDecoration(
-                        color: setOpacity(kPrimaryColor, 0.1),
+                        color: kPrimaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-
                       child: const Icon(
                         Icons.shopping_cart,
                         color: kPrimaryColor,
@@ -135,42 +88,29 @@ class _MenuScreenState extends State<MenuScreen> {
             const SizedBox(width: 20),
         ],
       ),
-
-      // Isi halaman
       body: Column(
         children: [
-
-          // List kategori horizontal
           SizedBox(
             height: 50,
-
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: categories.length,
-
               itemBuilder: (context, index) => Padding(
                 padding: const EdgeInsets.only(right: 8),
-
                 child: GestureDetector(
-
-                  // Pilih kategori
                   onTap: () =>
                       setState(() => selectedCategory = categories[index]),
-
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
-
                     decoration: BoxDecoration(
                       color: selectedCategory == categories[index]
                           ? kPrimaryColor
                           : kCardColor,
-
                       borderRadius: BorderRadius.circular(20),
-
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.05),
@@ -178,7 +118,6 @@ class _MenuScreenState extends State<MenuScreen> {
                         ),
                       ],
                     ),
-
                     child: Center(
                       child: Text(
                         categories[index],
@@ -186,7 +125,6 @@ class _MenuScreenState extends State<MenuScreen> {
                           color: selectedCategory == categories[index]
                               ? Colors.white
                               : kTextPrimary,
-
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -197,26 +135,44 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Grid menu
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: StreamBuilder<List<SellerMenuItem>>(
+              stream: _repository.getMenuStream(widget.tenant.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.75,
-              ),
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Terjadi kesalahan'));
+                }
 
-              itemCount: filteredItems.length,
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Kantin ini belum memiliki menu'));
+                }
 
-              itemBuilder: (context, index) =>
-                  _buildMenuItem(filteredItems[index]),
+                // Filter available menus
+                var items = snapshot.data!.where((item) => item.isAvailable).toList();
+                
+                // Filter by category
+                if (selectedCategory != 'All') {
+                  items = items.where((item) => item.category == selectedCategory).toList();
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.65, // Adjust for extra stock text
+                  ),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) =>
+                      _buildMenuItem(items[index], cart),
+                );
+              },
             ),
           ),
         ],
@@ -224,41 +180,29 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  // Fungsi membuat kartu item menu
-  Widget _buildMenuItem(MenuItem item) {
-    
-    // Cari item di cart
-    CartItem? cartItem = cartItems.firstWhere(
-      (ci) => ci.item.id == item.id,
-      orElse: () => CartItem(item: item, quantity: 0),
-    );
-
-    int quantity = cartItem.quantity;
+  Widget _buildMenuItem(SellerMenuItem item, CartProvider cart) {
+    // Determine quantity in cart
+    final cartItem = cart.items[item.id];
+    final quantity = cartItem?.quantity ?? 0;
 
     return Container(
       decoration: BoxDecoration(
         color: kCardColor,
         borderRadius: BorderRadius.circular(16),
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          // Gambar/emoji item
           Container(
             width: double.infinity,
             height: 100,
-
             decoration: BoxDecoration(
-              color: setOpacity(kPrimaryColor, 0.1),
-
+              color: kPrimaryColor.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
             ),
-
             child: Center(
               child: Text(
                 item.imageUrl,
@@ -266,16 +210,11 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
           ),
-
-          // Detail item
           Padding(
             padding: const EdgeInsets.all(12),
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                // Nama item
                 Text(
                   item.name,
                   style: const TextStyle(
@@ -284,10 +223,7 @@ class _MenuScreenState extends State<MenuScreen> {
                     color: kTextPrimary,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
-                // Deskripsi
                 Text(
                   item.description,
                   style: const TextStyle(
@@ -295,15 +231,10 @@ class _MenuScreenState extends State<MenuScreen> {
                     color: kTextSecondary,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
-                // Harga + tombol
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
-                    // Harga
                     Text(
                       'Rp${item.price.toStringAsFixed(0)}',
                       style: const TextStyle(
@@ -311,48 +242,67 @@ class _MenuScreenState extends State<MenuScreen> {
                         color: kPrimaryColor,
                       ),
                     ),
-
-                    // Jika belum ada di cart
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Stok: ${item.stock}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: item.stock > 0 ? kSuccessColor : kDangerColor,
+                      ),
+                    ),
                     if (quantity == 0)
-
                       GestureDetector(
                         onTap: () {
-                          setState(() {
-                            cartItems.add(
-                              CartItem(item: item, quantity: 1),
-                            );
-                          });
+                          if (item.stock > 0) {
+                            cart.addItem(item);
+                          }
                         },
-
-                        child: const Icon(Icons.add),
+                        child: Icon(
+                          Icons.add_shopping_cart,
+                          color: item.stock > 0 ? kPrimaryColor : kTextSecondary,
+                        ),
                       )
-
-                    // Jika sudah ada
                     else
-
                       Row(
                         children: [
-
-                          // Kurangi jumlah
                           GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                quantity--;
-                              });
-                            },
-                            child: const Text('-'),
+                            onTap: () => cart.removeSingleItem(item.id),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: kPrimaryColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Icon(Icons.remove, size: 16, color: kPrimaryColor),
+                            ),
                           ),
-
-                          Text(quantity.toString()),
-
-                          // Tambah jumlah
+                          const SizedBox(width: 8),
+                          Text(quantity.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                quantity++;
-                              });
+                              if (quantity < item.stock) {
+                                cart.addItem(item);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Stok tidak mencukupi!')),
+                                );
+                              }
                             },
-                            child: const Text('+'),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: quantity < item.stock ? kPrimaryColor : kTextSecondary.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Icon(Icons.add, size: 16, color: Colors.white),
+                            ),
                           ),
                         ],
                       ),
@@ -362,15 +312,6 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // Fungsi navigasi ke cart
-  void _navigateToCart() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CartScreen(cartItems: cartItems),
       ),
     );
   }
