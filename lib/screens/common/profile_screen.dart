@@ -58,6 +58,9 @@ class ProfileScreen extends StatelessWidget {
     if (confirm == true) {
       await AuthService().logout();
       if (!context.mounted) return; // avoid using disposed context
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout berhasil'), backgroundColor: Colors.green),
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
