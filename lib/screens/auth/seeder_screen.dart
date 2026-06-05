@@ -98,9 +98,9 @@ class _SetupScreenState extends State<SetupScreen> {
     _addLog('🎉 Setup selesai!');
     _addLog('');
     _addLog('📋 Akun yang tersedia:');
-    _addLog('Admin: admin@kantin.com / Admin1234');
-    _addLog('Pedagang 1: pedagang1@kantin.com / Pedagang1234');
-    _addLog('Pedagang 2: pedagang2@kantin.com / Pedagang5678');
+    _addLog('Admin: admin@gmail.com / Password123');
+    _addLog('Pedagang 1: pedagang1@gmail.com / Password098');
+    _addLog('Pedagang 2: pedagang2@gmail.com / Password456');
 
     setState(() => _isLoading = false);
   }

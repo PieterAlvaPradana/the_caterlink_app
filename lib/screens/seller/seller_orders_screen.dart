@@ -11,7 +11,7 @@ class SellerOrdersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final sellerId = FirebaseAuth.instance.currentUser!.uid;
 
-    return StreamBuilder<List<OrderModel>>(
+    final childWidget = StreamBuilder<List<OrderModel>>(
       stream: OrderRepository().getSellerOrders(sellerId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -46,6 +46,19 @@ class SellerOrdersScreen extends StatelessWidget {
           },
         );
       },
+    );
+
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: kCardColor,
+        elevation: 0,
+        title: const Text(
+          'Pesanan Masuk',
+          style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: childWidget,
     );
   }
 

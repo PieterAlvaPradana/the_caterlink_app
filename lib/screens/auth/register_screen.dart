@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'user'; // default role
+  final String _selectedRole = 'user'; // default role
   bool _isLoading = false;
 
   @override

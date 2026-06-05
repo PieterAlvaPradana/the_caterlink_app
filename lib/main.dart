@@ -22,7 +22,7 @@ Future<void> main() async {
   }
 
   // Auto-seed data for the user
-  await _seedFoodItems();
+  // await _seedFoodItems();
 
   runApp(
     MultiProvider(
@@ -51,56 +51,3 @@ class CanteenApp extends StatelessWidget {
   }
 }
 
-Future<void> _seedFoodItems() async {
-  try {
-    final sellers = await FirebaseFirestore.instance
-        .collection('users')
-        .where('role', isEqualTo: 'seller')
-        .get();
-
-    for (var doc in sellers.docs) {
-      final menuRef = FirebaseFirestore.instance
-          .collection('sellers')
-          .doc(doc.id)
-          .collection('menus');
-
-      final existing = await menuRef.limit(1).get();
-      if (existing.docs.isEmpty) {
-        // Create sample foods with stock 50
-        await menuRef.add({
-          'name': 'Nasi Goreng Spesial',
-          'description': 'Nasi goreng dengan ayam dan sayuran.',
-          'price': 25000.0,
-          'imageUrl': '🍚',
-          'category': 'Nasi',
-          'isAvailable': true,
-          'stock': 50,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-        await menuRef.add({
-          'name': 'Ayam Bakar',
-          'description': 'Ayam bakar madu manis gurih.',
-          'price': 30000.0,
-          'imageUrl': '🍗',
-          'category': 'Meat',
-          'isAvailable': true,
-          'stock': 50,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-        await menuRef.add({
-          'name': 'Es Teh Manis',
-          'description': 'Es teh manis segar.',
-          'price': 5000.0,
-          'imageUrl': '🧋',
-          'category': 'Drinks',
-          'isAvailable': true,
-          'stock': 50,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-    }
-  } catch (_) {}
-}

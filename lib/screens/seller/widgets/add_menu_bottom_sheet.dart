@@ -129,37 +129,34 @@ class _AddMenuBottomSheetState extends State<AddMenuBottomSheet>
         await widget.repository.addMenu(widget.sellerId, menuItem);
       }
 
-      if (mounted) {
-        Navigator.pop(context, true);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditMode
-                  ? '✅ Menu berhasil diperbarui'
-                  : '✅ Menu berhasil ditambahkan',
-            ),
-            backgroundColor: kSuccessColor,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEditMode
+                ? '✅ Menu berhasil diperbarui'
+                : '✅ Menu berhasil ditambahkan',
           ),
-        );
-      }
+          backgroundColor: kSuccessColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      Navigator.pop(context, true);
     } on FirebaseException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Gagal: ${e.message}'),
-            backgroundColor: kDangerColor,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Gagal: ${e.message}'),
+          backgroundColor: kDangerColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      }
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

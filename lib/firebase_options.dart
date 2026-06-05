@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'klikkantinapp.firebasestorage.app',
     measurementId: 'G-6S838E67M5',
   );
+
 }

@@ -292,9 +292,9 @@ class _SellerHomeScreenState extends State<SellerHomeScreen>
 
   /// Grid responsif: 1 kolom di mobile, 2 kolom di tablet.
   Widget _buildResponsiveGrid(List<SellerMenuItem> items) {
-    return LayoutBuilder(
+    return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
+        final isWide = constraints.crossAxisExtent > 600;
 
         if (isWide) {
           // Tablet: 2 kolom grid
@@ -888,22 +888,25 @@ class _SellerHomeScreenState extends State<SellerHomeScreen>
               child: const Text('Batal'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(dialogContext);
-                Navigator.of(context).pushAndRemoveUntil(
-                  PageRouteBuilder(
-                    pageBuilder:
-                        (context, animation, secondaryAnimation) =>
-                            const LoginScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) =>
-                            FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                  ),
-                  (route) => false,
-                );
+                await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    PageRouteBuilder(
+                      pageBuilder:
+                          (context, animation, secondaryAnimation) =>
+                              const LoginScreen(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) =>
+                              FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                    ),
+                    (route) => false,
+                  );
+                }
               },
               child: const Text(
                 'Logout',

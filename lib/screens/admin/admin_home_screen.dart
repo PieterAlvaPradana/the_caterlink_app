@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../constants/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
@@ -177,23 +175,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         onPressed: () async {
                           setState(() => isLoading = true);
                           try {
-                            FirebaseApp secondaryApp = await Firebase.initializeApp(
-                              name: 'SecondaryApp',
-                              options: Firebase.app().options,
+                            await AuthService().registerTenant(
+                              name: nameController.text.trim(),
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
                             );
-                            final userCredential = await FirebaseAuth.instanceFor(app: secondaryApp)
-                                .createUserWithEmailAndPassword(
-                                    email: emailController.text.trim(),
-                                    password: passwordController.text.trim());
-                            
-                            await _firestore.collection('users').doc(userCredential.user!.uid).set({
-                              'name': nameController.text.trim(),
-                              'email': emailController.text.trim(),
-                              'role': 'seller',
-                              'createdAt': FieldValue.serverTimestamp(),
-                            });
-                            
-                            await secondaryApp.delete();
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -323,7 +309,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 }).toList();
               }
 
-              final totalRevenue = orders.where((o) => o.status != 'cancelled').fold(0.0, (sum, o) => sum + o.totalPrice);
+              final totalRevenue = orders.where((o) => o.status != 'cancelled').fold(0.0, (acc, o) => acc + o.totalPrice);
               final totalOrders = orders.length;
 
               return Column(
