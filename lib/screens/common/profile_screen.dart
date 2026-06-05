@@ -8,10 +8,7 @@ import '../auth/login_screen.dart';
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
 
-  const ProfileScreen({
-    super.key,
-    required this.user,
-  });
+  const ProfileScreen({super.key, required this.user});
 
   String _getRoleDisplayName() {
     switch (user.role.toLowerCase()) {
@@ -37,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
-// Removed stray logout dialog code that was outside of any method
+  // Removed stray logout dialog code that was outside of any method
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -45,7 +42,10 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('Logout'),
         content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: kDangerColor),
@@ -59,11 +59,14 @@ class ProfileScreen extends StatelessWidget {
       await AuthService().logout();
       if (!context.mounted) return; // avoid using disposed context
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logout berhasil'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Logout berhasil'),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
   }
 
@@ -103,7 +106,9 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : 'U',
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
@@ -127,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
                           size: 18,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -144,7 +149,10 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 8),
               // Role Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: setOpacity(roleColor, 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -202,7 +210,10 @@ class ProfileScreen extends StatelessWidget {
                   icon: const Icon(Icons.logout_rounded, color: Colors.white),
                   label: const Text(
                     'Keluar Akun',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kDangerColor,
@@ -237,10 +248,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: kTextSecondary,
-                ),
+                style: const TextStyle(fontSize: 12, color: kTextSecondary),
               ),
               const SizedBox(height: 4),
               Text(
