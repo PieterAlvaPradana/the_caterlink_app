@@ -7,25 +7,25 @@ class OrderRepository {
   // Fungsi untuk user checkout dan membuat order baru, sekaligus mengurangi stok
   Future<String> createOrder(OrderModel order) async {
     final batch = _firestore.batch();
-    
+
     // Create order doc
     final orderRef = _firestore.collection('orders').doc();
-    batch.set(orderRef, order.toFirestore());
+    // Use client-side timestamp from the OrderModel to allow immediate visibility
+    // in realtime listeners (the server may overwrite with serverTimestamp later).
+    batch.set(orderRef, order.toMap());
 
     // Reduce stock for each item
     for (var item in order.items) {
       final itemId = item['id'] as String;
       final quantity = item['quantity'] as int;
-      
+
       final menuRef = _firestore
           .collection('sellers')
           .doc(order.sellerId)
           .collection('menus')
           .doc(itemId);
-          
-      batch.update(menuRef, {
-        'stock': FieldValue.increment(-quantity)
-      });
+
+      batch.update(menuRef, {'stock': FieldValue.increment(-quantity)});
     }
 
     await batch.commit();
@@ -68,7 +68,7 @@ class OrderRepository {
       'status': newStatus,
     });
   }
-  
+
   // Ambil detail satu order dari ID
   Future<OrderModel?> getOrderById(String orderId) async {
     final doc = await _firestore.collection('orders').doc(orderId).get();

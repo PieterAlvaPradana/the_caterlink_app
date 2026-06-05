@@ -13,13 +13,17 @@ class AdminAllOrdersScreen extends StatefulWidget {
 
 class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   DateTime? _startDate;
   DateTime? _endDate;
   String _searchQuery = '';
 
   String _formatRupiah(double amount) {
-    final formatter = NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp',
+      decimalDigits: 0,
+    );
     return formatter.format(amount);
   }
 
@@ -54,9 +58,13 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                       hintText: 'Cari berdasarkan ID/Nama/Seller...',
                       prefixIcon: Icon(Icons.search, color: kTextSecondary),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                    onChanged: (val) =>
+                        setState(() => _searchQuery = val.toLowerCase()),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -66,7 +74,9 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.date_range, size: 16),
                         label: Text(
-                          _startDate == null ? 'Tanggal Mulai' : DateFormat('dd MMM yy').format(_startDate!),
+                          _startDate == null
+                              ? 'Tanggal Mulai'
+                              : DateFormat('dd MMM yy').format(_startDate!),
                           style: const TextStyle(fontSize: 12),
                         ),
                         onPressed: () async {
@@ -85,7 +95,9 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.date_range, size: 16),
                         label: Text(
-                          _endDate == null ? 'Tanggal Akhir' : DateFormat('dd MMM yy').format(_endDate!),
+                          _endDate == null
+                              ? 'Tanggal Akhir'
+                              : DateFormat('dd MMM yy').format(_endDate!),
                           style: const TextStyle(fontSize: 12),
                         ),
                         onPressed: () async {
@@ -96,14 +108,25 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                             lastDate: DateTime.now(),
                           );
                           if (date != null) {
-                            setState(() => _endDate = DateTime(date.year, date.month, date.day, 23, 59, 59));
+                            setState(
+                              () => _endDate = DateTime(
+                                date.year,
+                                date.month,
+                                date.day,
+                                23,
+                                59,
+                                59,
+                              ),
+                            );
                           }
                         },
                       ),
                     ),
                   ],
                 ),
-                if (_startDate != null || _endDate != null || _searchQuery.isNotEmpty) ...[
+                if (_startDate != null ||
+                    _endDate != null ||
+                    _searchQuery.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => setState(() {
@@ -120,24 +143,37 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
           // Transactions list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore.collectionGroup('orders').orderBy('createdAt', descending: true).snapshots(),
+              stream: _firestore
+                  .collectionGroup('orders')
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) return const Center(child: Text('Terjadi kesalahan memuat data.'));
+                if (snapshot.hasError)
+                  return const Center(
+                    child: Text('Terjadi kesalahan memuat data.'),
+                  );
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('Belum ada transaksi'));
                 }
 
-                var orders = snapshot.data!.docs.map((doc) => OrderModel.fromFirestore(doc)).toList();
+                final docs = snapshot.data!.docs;
+                var orders = docs
+                    .map((doc) => OrderModel.fromFirestore(doc))
+                    .toList();
 
                 // Apply filters
                 if (_startDate != null) {
-                  orders = orders.where((o) => o.createdAt.isAfter(_startDate!)).toList();
+                  orders = orders
+                      .where((o) => o.createdAt.isAfter(_startDate!))
+                      .toList();
                 }
                 if (_endDate != null) {
-                  orders = orders.where((o) => o.createdAt.isBefore(_endDate!)).toList();
+                  orders = orders
+                      .where((o) => o.createdAt.isBefore(_endDate!))
+                      .toList();
                 }
                 if (_searchQuery.isNotEmpty) {
                   orders = orders.where((o) {
@@ -147,30 +183,61 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                   }).toList();
                 }
 
-                final totalRevenue = orders.where((o) => o.status != 'cancelled').fold(0.0, (acc, o) => acc + o.totalPrice);
+                final totalRevenue = orders
+                    .where((o) => o.status != 'cancelled')
+                    .fold(0.0, (acc, o) => acc + o.totalPrice);
                 final totalOrders = orders.length;
 
                 return Column(
                   children: [
                     // Stats
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 24,
+                      ),
                       color: kPrimaryColor.withValues(alpha: 0.1),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Column(
                             children: [
-                              const Text('Total Transaksi', style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                              const Text(
+                                'Total Transaksi',
+                                style: TextStyle(
+                                  color: kTextSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text('$totalOrders', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kPrimaryColor)),
+                              Text(
+                                '$totalOrders',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
                             ],
                           ),
                           Column(
                             children: [
-                              const Text('Total Pendapatan', style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                              const Text(
+                                'Total Pendapatan',
+                                style: TextStyle(
+                                  color: kTextSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(_formatRupiah(totalRevenue), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kPrimaryColor)),
+                              Text(
+                                _formatRupiah(totalRevenue),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -181,27 +248,39 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                         padding: const EdgeInsets.all(16),
                         itemCount: orders.length,
                         itemBuilder: (context, index) {
-                          final order = orders[index];
+                          // Use the original document to allow updates/deletes
+                          final doc = docs[index];
+                          final order = OrderModel.fromFirestore(doc);
                           return Card(
                             color: kCardColor,
                             margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 3,
                             shadowColor: Colors.black.withValues(alpha: 0.04),
                             child: ExpansionTile(
                               title: Text(
                                 'Order ID: ${order.id.substring(0, 8).toUpperCase()}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
                               ),
                               subtitle: Text(
                                 '${order.sellerName} ➔ ${order.userName}',
-                                style: const TextStyle(fontSize: 12, color: kTextSecondary),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: kTextSecondary,
+                                ),
                               ),
                               trailing: Text(
                                 order.status.toUpperCase(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: order.status == 'done' ? kSuccessColor : Colors.orange,
+                                  color: order.status == 'done'
+                                      ? kSuccessColor
+                                      : Colors.orange,
                                 ),
                               ),
                               children: [
@@ -210,18 +289,179 @@ class _AdminAllOrdersScreenState extends State<AdminAllOrdersScreen> {
                                   width: double.infinity,
                                   color: kBackgroundColor,
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Items:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      const Text(
+                                        'Items:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                       const SizedBox(height: 8),
-                                      ...order.items.map((item) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 4.0),
-                                        child: Text('- ${item['quantity']}x ${item['name']} (${_formatRupiah((item['price'] ?? 0.0).toDouble())})'),
-                                      )),
+                                      ...order.items.map(
+                                        (item) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 4.0,
+                                          ),
+                                          child: Text(
+                                            '- ${item['quantity']}x ${item['name']} (${_formatRupiah((item['price'] ?? 0.0).toDouble())})',
+                                          ),
+                                        ),
+                                      ),
                                       const SizedBox(height: 8),
-                                      Text('Total: ${_formatRupiah(order.totalPrice)}', style: const TextStyle(fontWeight: FontWeight.bold, color: kPrimaryColor)),
+                                      Text(
+                                        'Total: ${_formatRupiah(order.totalPrice)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: kPrimaryColor,
+                                        ),
+                                      ),
                                       const SizedBox(height: 8),
-                                      Text('Tanggal: ${DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt)}', style: const TextStyle(fontSize: 11, color: kTextSecondary)),
+                                      Text(
+                                        'Tanggal: ${DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt)}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: kTextSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Admin actions: Edit status and Delete (only when completed/paid)
+                                      Row(
+                                        children: [
+                                          ElevatedButton.icon(
+                                            onPressed: () async {
+                                              final newStatus = await showDialog<String>(
+                                                context: context,
+                                                builder: (context) {
+                                                  String selected =
+                                                      order.status;
+                                                  return AlertDialog(
+                                                    title: const Text(
+                                                      'Ubah Status Pesanan',
+                                                    ),
+                                                    content: DropdownButton<String>(
+                                                      value: selected,
+                                                      items:
+                                                          [
+                                                                'pending',
+                                                                'processing',
+                                                                'done',
+                                                                'cancelled',
+                                                                'paid',
+                                                              ]
+                                                              .map(
+                                                                (s) =>
+                                                                    DropdownMenuItem(
+                                                                      value: s,
+                                                                      child:
+                                                                          Text(
+                                                                            s,
+                                                                          ),
+                                                                    ),
+                                                              )
+                                                              .toList(),
+                                                      onChanged: (v) =>
+                                                          selected =
+                                                              v ?? selected,
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                            ),
+                                                        child: const Text(
+                                                          'Batal',
+                                                        ),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              context,
+                                                              selected,
+                                                            ),
+                                                        child: const Text(
+                                                          'Simpan',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                              if (newStatus != null &&
+                                                  newStatus != order.status) {
+                                                await doc.reference.update({
+                                                  'status': newStatus,
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                            ),
+                                            label: const Text('Edit'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: kPrimaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          ElevatedButton.icon(
+                                            onPressed:
+                                                (order.status == 'done' ||
+                                                    order.status == 'paid')
+                                                ? () async {
+                                                    final confirm = await showDialog<bool>(
+                                                      context: context,
+                                                      builder: (context) => AlertDialog(
+                                                        title: const Text(
+                                                          'Hapus Transaksi',
+                                                        ),
+                                                        content: const Text(
+                                                          'Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.',
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  false,
+                                                                ),
+                                                            child: const Text(
+                                                              'Batal',
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  true,
+                                                                ),
+                                                            child: const Text(
+                                                              'Hapus',
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                    if (confirm == true) {
+                                                      await doc.reference
+                                                          .delete();
+                                                    }
+                                                  }
+                                                : null,
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              size: 16,
+                                            ),
+                                            label: const Text('Delete'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.redAccent,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
