@@ -17,9 +17,11 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  late FocusNode _passwordFocusNode;
   late AnimationController _animationController;
   bool _isLoading = false;
   int _tapCount = 0;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -32,12 +34,14 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 800),
     );
     _animationController.forward();
+    _passwordFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -159,6 +163,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ).animate(_animationController),
                     child: TextField(
                       controller: _passwordController,
+                      focusNode: _passwordFocusNode,
                       obscureText: true,
                       decoration: InputDecoration(
                         hintText: 'Password',
@@ -195,6 +200,14 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  if (_errorMessage != null) ...[
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   const SizedBox(height: 24),
                   ScaleTransition(
                     scale: Tween<double>(begin: 0, end: 1).animate(
@@ -274,6 +287,7 @@ class _LoginScreenState extends State<LoginScreen>
         password: _passwordController.text.trim(),
       );
       if (mounted) {
+        setState(() => _errorMessage = null);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Login berhasil'),
@@ -315,6 +329,10 @@ class _LoginScreenState extends State<LoginScreen>
             ? 'Email atau password Anda salah'
             : (e.message ?? 'Gagal login');
 
+        // clear password for retry and show inline message
+        _passwordController.clear();
+        _passwordFocusNode.requestFocus();
+        setState(() => _errorMessage = message);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
@@ -339,7 +357,9 @@ class _LoginScreenState extends State<LoginScreen>
         final message = isCredentialError
             ? 'Email atau password Anda salah'
             : e.toString();
-
+        _passwordController.clear();
+        _passwordFocusNode.requestFocus();
+        setState(() => _errorMessage = message);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
