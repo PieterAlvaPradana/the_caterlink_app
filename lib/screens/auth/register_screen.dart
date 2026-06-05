@@ -30,9 +30,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua field harus diisi')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Semua field harus diisi')));
       return;
     }
 
@@ -45,15 +45,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         role: _selectedRole,
       );
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pendaftaran berhasil'),
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const RoleChecker()),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     } finally {
       if (mounted) {
@@ -131,9 +137,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: const Text(
                         'Daftar',
                         style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
               const SizedBox(height: 16),
@@ -144,7 +151,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
                 },
                 child: const Text('Sudah punya akun? Login di sini'),
-              )
+              ),
             ],
           ),
         ),

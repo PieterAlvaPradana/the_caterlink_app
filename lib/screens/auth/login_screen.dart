@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'register_screen.dart';
 import 'seeder_screen.dart';
 import '../../services/auth_service.dart';
@@ -273,6 +274,12 @@ class _LoginScreenState extends State<LoginScreen>
         password: _passwordController.text.trim(),
       );
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login berhasil'),
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
@@ -283,11 +290,23 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         );
       }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message = e.message ?? 'Gagal login';
+        if (e.code == 'user-not-found') {
+          message = 'Email tidak ditemukan';
+        } else if (e.code == 'wrong-password') {
+          message = 'Password salah';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) {

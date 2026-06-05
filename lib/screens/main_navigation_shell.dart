@@ -58,20 +58,24 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       }
 
       var userProfile = await _authService.getUserDetails(currentUser.uid);
-      
+
       // Auto-heal missing Firestore records
       if (userProfile == null) {
         String defaultRole = 'user';
         final email = currentUser.email?.toLowerCase() ?? '';
         if (email.contains('admin')) {
           defaultRole = 'admin';
-        } else if (email.contains('pedagang') || email.contains('seller') || email.contains('tenant')) {
+        } else if (email.contains('pedagang') ||
+            email.contains('seller') ||
+            email.contains('tenant')) {
           defaultRole = 'seller';
         }
 
         final defaultUser = UserModel(
           uid: currentUser.uid,
-          name: currentUser.displayName ?? (email.isNotEmpty ? email.split('@')[0] : 'User'),
+          name:
+              currentUser.displayName ??
+              (email.isNotEmpty ? email.split('@')[0] : 'User'),
           email: currentUser.email ?? '',
           role: defaultRole,
           createdAt: DateTime.now(),
@@ -118,30 +122,39 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   }
 
   void _handleLogout(BuildContext context) async {
-  final confirm = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Logout'),
-      content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: kDangerColor),
-          child: const Text('Keluar', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
-  );
-
-  if (confirm == true) {
-    await _authService.logout();
-    if (!mounted) return; // avoid using a disposed context
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: kDangerColor),
+            child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
+
+    if (confirm == true) {
+      await _authService.logout();
+      if (!mounted) return; // avoid using a disposed context
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logout berhasil'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+    }
   }
-}
 
   List<BottomNavigationBarItem> _getBottomNavItems() {
     if (_user == null) return [];
@@ -287,8 +300,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               SizedBox(height: 16),
               Text(
                 'Memuat profil pengguna...',
-                style: TextStyle(color: kTextSecondary, fontWeight: FontWeight.w500),
-              )
+                style: TextStyle(
+                  color: kTextSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
@@ -303,18 +319,30 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline_rounded, color: kDangerColor, size: 48),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: kDangerColor,
+                  size: 48,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   _errorMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: kTextPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _loadUserProfile,
-                  style: ElevatedButton.styleFrom(backgroundColor: kPrimaryColor),
-                  child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryColor,
+                  ),
+                  child: const Text(
+                    'Coba Lagi',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
