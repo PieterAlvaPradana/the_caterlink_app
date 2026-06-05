@@ -292,12 +292,29 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        String message = e.message ?? 'Gagal login';
-        if (e.code == 'user-not-found') {
-          message = 'Email tidak ditemukan';
-        } else if (e.code == 'wrong-password') {
-          message = 'Password salah';
-        }
+        // Common Firebase credential-related error codes -> generic message
+        const credentialErrors = {
+          'wrong-password',
+          'user-not-found',
+          'invalid-credential',
+          'invalid-email',
+          'invalid-verification-code',
+          'invalid-verification-id',
+          'invalid-provider-id',
+        };
+
+        final messageLower = (e.message ?? '').toLowerCase();
+        final isCredentialError =
+            credentialErrors.contains(e.code) ||
+            messageLower.contains('credential') ||
+            messageLower.contains('incorrect') ||
+            messageLower.contains('malformed') ||
+            messageLower.contains('expired');
+
+        final message = isCredentialError
+            ? 'Email atau password Anda salah'
+            : (e.message ?? 'Gagal login');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
