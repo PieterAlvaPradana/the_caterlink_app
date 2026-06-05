@@ -321,8 +321,27 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } catch (e) {
       if (mounted) {
+        final textLower = e.toString().toLowerCase();
+        final credentialKeywords = [
+          'credential',
+          'incorrect',
+          'malformed',
+          'expired',
+          'wrong-password',
+          'user-not-found',
+          'invalid-email',
+          'invalid-credential',
+        ];
+
+        final isCredentialError = credentialKeywords.any(
+          (k) => textLower.contains(k),
+        );
+        final message = isCredentialError
+            ? 'Email atau password Anda salah'
+            : e.toString();
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
       }
     } finally {
